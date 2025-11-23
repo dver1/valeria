@@ -11,7 +11,11 @@ Valeria is a minimal Node.js application designed to demonstrate how to expose c
 - Stress test the app to validate metric variations and confirm observability setup.
 
 ## 📂 Project Structure
-valeria/ ├── server.js        # Express app with Prometheus metrics ├── package.json     # Node.js dependencies ├── Dockerfile       # Container definition for Cloud Run └── .gitignore       # Ignore node_modules and logs
+valeria/ ├── server.js        
+# Express app with Prometheus metrics ├── package.json    
+# Node.js dependencies ├── Dockerfile      
+# Container definition for Cloud Run └── .gitignore       
+# Ignore node_modules and logs
 
 
 
@@ -22,18 +26,19 @@ valeria/ ├── server.js        # Express app with Prometheus metrics ├─
 
 ## 🛠️ Local Development
 
-```bash
+``bash
+
 npm install
 npm start
 
 
-## ⚙️ Endpoints
-
+⚙️ Endpoints
 - Visit http://localhost:8080/ → Hello message
 - Visit http://localhost:8080/metrics → Prometheus metrics
 
 
 ☁️ Deployment to Cloud Run
+
 gcloud config set project valeria-pro
 gcloud builds submit --tag gcr.io/valeria-pro/valeria
 gcloud run deploy valeria \
@@ -49,7 +54,8 @@ gcloud run deploy valeria \
 - Add Grafana and connect it to Cloud Monitoring.
 - Perform stress tests to validate metrics and dashboards.
 
-Valeria is not intended as a production app, but as a learning project to explore observability workflows with Prometheus and Grafana in Google Cloud.
+Valeria is not intended as a production app, but as a learning project to explore observability
+workflows with Prometheus and Grafana in Google Cloud.
 
 
 
