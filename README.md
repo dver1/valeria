@@ -26,7 +26,7 @@ valeria/ ├── server.js
 
 ## 🛠️ Local Development
 
-``bash
+## bash
 
 npm install
 npm start
