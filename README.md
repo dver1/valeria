@@ -11,12 +11,13 @@ Valeria is a minimal Node.js application designed to demonstrate how to expose c
 - Stress test the app to validate metric variations and confirm observability setup.
 
 ## 📂 Project Structure
-valeria/
-  ├── server.js        # Express app exposing Prometheus metrics
-  ├── package.json     # Node.js dependencies and scripts
-  ├── Dockerfile       # Container definition for deployment on Cloud Run
-      └── .gitignore       # Ignore node_modules, logs, and other unnecessary files
 
+```text
+valeria/
+├── server.js        # Express app exposing Prometheus metrics
+├── package.json     # Node.js dependencies and scripts
+├── Dockerfile       # Container definition for deployment on Cloud Run
+└── .gitignore       # Ignore node_modules, logs, and other unnecessary files
 
 
 ## ⚙️ Endpoints
