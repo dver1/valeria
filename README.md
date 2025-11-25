@@ -19,6 +19,7 @@ valeria/
 ├── Dockerfile       # Container definition for deployment on Cloud Run
 └── .gitignore       # Ignore node_modules, logs, and other unnecessary files
 
+```
 
 ## ⚙️ Endpoints
 
