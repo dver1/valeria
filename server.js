@@ -1,6 +1,7 @@
 const express = require('express');
 const client = require('prom-client');
 const {MetricServiceClient} = require('@google-cloud/monitoring');
+const {v4: uuidv4} = require('uuid');
 
 const app = express();
 const monitoringClient = new MetricServiceClient();
@@ -15,6 +16,7 @@ const counter = new client.Counter({
 // Cloud Monitoring metric
 async function sendMetricToCloudMonitoring() {
   const now = Math.floor(Date.now() / 1000);
+  const requestId = uuidv4(); // etiqueta única por petición
 
   const dataPoint = {
     interval: {
@@ -24,8 +26,14 @@ async function sendMetricToCloudMonitoring() {
   };
 
   const timeSeriesData = {
-    metric: {type: 'custom.googleapis.com/valeria/request_count'},
-    resource: {type: 'global'},
+    metric: {
+      type: 'custom.googleapis.com/valeria/request_count',
+      labels: {request_id: requestId},
+    },
+    resource: {
+      type: 'global',
+      labels: {},
+    },
     metricKind: 'GAUGE',
     valueType: 'INT64',
     points: [dataPoint],
