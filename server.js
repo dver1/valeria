@@ -1,67 +1,37 @@
 const express = require('express');
-const client = require('prom-client');
-const {MetricServiceClient} = require('@google-cloud/monitoring');
-const {v4: uuidv4} = require('uuid');
+const promClient = require('prom-client');
+const crypto = require('crypto');
 
-const app = express();
-const monitoringClient = new MetricServiceClient();
-const projectId = 'valeria-pro';
-
-// Prometheus metric
-const counter = new client.Counter({
-  name: 'valeria_requests_total',
-  help: 'Total requests handled by Valeria app'
-});
-
-// Cloud Monitoring metric
-async function sendMetricToCloudMonitoring() {
-  const now = Math.floor(Date.now() / 1000);
-  const requestId = uuidv4(); // etiqueta única por petición
-
-  const dataPoint = {
-    interval: {
-      endTime: {seconds: now},
-    },
-    value: {int64Value: 1},
-  };
-
-  const timeSeriesData = {
-    metric: {
-      type: 'custom.googleapis.com/valeria/request_count',
-      labels: {request_id: requestId},
-    },
-    resource: {
-      type: 'global',
-      labels: {},
-    },
-    metricKind: 'GAUGE',
-    valueType: 'INT64',
-    points: [dataPoint],
-  };
-
-  try {
-    await monitoringClient.createTimeSeries({
-      name: monitoringClient.projectPath(projectId),
-      timeSeries: [timeSeriesData],
-    });
-    console.log('Metric sent to Cloud Monitoring');
-  } catch (err) {
-    console.error('Error sending metric:', err);
-  }
+function uuidv4() {
+  return crypto.randomUUID();
 }
 
-// Main endpoint
-app.get('/', async (req, res) => {
-  counter.inc(); // Prometheus
-  await sendMetricToCloudMonitoring(); // Cloud Monitoring
-  res.send('Hello from Valeria!');
+const app = express();
+
+// Métrica de ejemplo con Prometheus
+const register = new promClient.Registry();
+promClient.collectDefaultMetrics({ register });
+
+const counter = new promClient.Counter({
+  name: 'valeria_requests_total',
+  help: 'Total de peticiones recibidas por Valeria',
+});
+register.registerMetric(counter);
+
+// Endpoint raíz
+app.get('/', (req, res) => {
+  counter.inc();
+  res.send(`Hello from Valeria! Request ID: ${uuidv4()}`);
 });
 
-// Metrics endpoint
+// Endpoint de métricas
 app.get('/metrics', async (req, res) => {
-  res.set('Content-Type', client.register.contentType);
-  res.end(await client.register.metrics());
+  res.set('Content-Type', register.contentType);
+  res.end(await register.metrics());
 });
 
+// Puerto dinámico para Cloud Run
 const port = process.env.PORT || 8080;
-app.listen(port, () => console.log(`Valeria app running on port ${port}`));
+app.listen(port, () => {
+  console.log(`Valeria app running on port ${port}`);
+});
