@@ -18,7 +18,6 @@ async function sendMetricToCloudMonitoring() {
 
   const dataPoint = {
     interval: {
-      startTime: {seconds: now},
       endTime: {seconds: now},
     },
     value: {int64Value: 1},
@@ -27,7 +26,7 @@ async function sendMetricToCloudMonitoring() {
   const timeSeriesData = {
     metric: {type: 'custom.googleapis.com/valeria/request_count'},
     resource: {type: 'global'},
-    metricKind: 'DELTA',
+    metricKind: 'GAUGE',
     valueType: 'INT64',
     points: [dataPoint],
   };
