@@ -14,9 +14,12 @@ const counter = new client.Counter({
 
 // Cloud Monitoring metric
 async function sendMetricToCloudMonitoring() {
+  const now = Math.floor(Date.now() / 1000);
+
   const dataPoint = {
     interval: {
-      endTime: {seconds: Math.floor(Date.now() / 1000)},
+      startTime: {seconds: now},
+      endTime: {seconds: now},
     },
     value: {int64Value: 1},
   };
@@ -24,6 +27,8 @@ async function sendMetricToCloudMonitoring() {
   const timeSeriesData = {
     metric: {type: 'custom.googleapis.com/valeria/request_count'},
     resource: {type: 'global'},
+    metricKind: 'DELTA',
+    valueType: 'INT64',
     points: [dataPoint],
   };
 
