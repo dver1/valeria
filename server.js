@@ -8,19 +8,55 @@ function uuidv4() {
 
 const app = express();
 
-// Métrica de ejemplo con Prometheus
+// Registro global de métricas
 const register = new promClient.Registry();
 promClient.collectDefaultMetrics({ register });
 
+// 1️⃣ Counter: peticiones totales
 const counter = new promClient.Counter({
   name: 'valeria_requests_total',
   help: 'Total de peticiones recibidas por Valeria',
 });
 register.registerMetric(counter);
 
+// 2️⃣ Gauge: memoria usada por el proceso
+const memoryGauge = new promClient.Gauge({
+  name: 'valeria_memory_bytes',
+  help: 'Memoria usada por el proceso en bytes',
+});
+register.registerMetric(memoryGauge);
+
+// 3️⃣ Histogram: latencia de peticiones
+const requestDuration = new promClient.Histogram({
+  name: 'valeria_request_duration_seconds',
+  help: 'Latencia de las peticiones en segundos',
+  labelNames: ['method', 'status'],
+  buckets: [0.01, 0.05, 0.1, 0.5, 1, 2, 5], // buckets de tiempo
+});
+register.registerMetric(requestDuration);
+
+// 4️⃣ Summary: tamaño de payloads
+const payloadSize = new promClient.Summary({
+  name: 'valeria_payload_size_bytes',
+  help: 'Tamaño de payloads recibidos en bytes',
+  labelNames: ['method'],
+});
+register.registerMetric(payloadSize);
+
+// Middleware para medir latencia y payload
+app.use((req, res, next) => {
+  const end = requestDuration.startTimer({ method: req.method });
+  res.on('finish', () => {
+    counter.inc();
+    end({ status: res.statusCode });
+    payloadSize.observe({ method: req.method }, Number(req.headers['content-length'] || 0));
+  });
+  next();
+});
+
 // Endpoint raíz
 app.get('/', (req, res) => {
-  counter.inc();
+  memoryGauge.set(process.memoryUsage().rss);
   res.send(`Hello from Valeria! Request ID: ${uuidv4()}`);
 });
 
@@ -33,5 +69,5 @@ app.get('/metrics', async (req, res) => {
 // Puerto dinámico para Cloud Run
 const port = process.env.PORT || 8080;
 app.listen(port, () => {
-  console.log(`Valeria app running on port ${port}`);
+  console.log(`Valeria app running on port ${port}, metrics at /metrics`);
 });
