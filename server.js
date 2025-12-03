@@ -13,6 +13,8 @@ async function sendCustomMetric(value) {
     return;
   }
 
+  const nowSeconds = Math.floor(Date.now() / 1000);
+
   const request = {
     name: client.projectPath(projectId),
     timeSeries: [
@@ -22,10 +24,8 @@ async function sendCustomMetric(value) {
         points: [
           {
             interval: {
-              endTime: {
-                // Convertimos a segundos (Cloud Monitoring requiere segundos, no milisegundos)
-                seconds: Math.floor(Date.now() / 1000),
-              },
+              startTime: { seconds: nowSeconds }, // Igual al endTime
+              endTime: { seconds: nowSeconds },
             },
             value: { doubleValue: value },
           },
