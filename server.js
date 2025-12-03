@@ -7,6 +7,10 @@ const client = new monitoring.MetricServiceClient();
 const projectId = process.env.GOOGLE_CLOUD_PROJECT || 'manprom'; // Cloud Run lo inyecta automáticamente
 
 async function sendCustomMetric(value) {
+  if (!projectId) {
+    console.error('Project ID is missing!');
+    return;
+  }
   const request = {
     name: client.projectPath(projectId),
     timeSeries: [
