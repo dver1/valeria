@@ -4,13 +4,14 @@ const crypto = require('crypto');
 const monitoring = require('@google-cloud/monitoring');
 
 const client = new monitoring.MetricServiceClient();
-const projectId = process.env.GOOGLE_CLOUD_PROJECT || 'manprom'; // Cloud Run lo inyecta automáticamente
+const projectId = process.env.GOOGLE_CLOUD_PROJECT; // Cloud Run lo inyecta automáticamente
 
 async function sendCustomMetric(value) {
   if (!projectId) {
-    console.error('Project ID is missing!');
+    console.error('Project ID is missing! Cannot send metric.');
     return;
   }
+
   const request = {
     name: client.projectPath(projectId),
     timeSeries: [
@@ -29,9 +30,9 @@ async function sendCustomMetric(value) {
 
   try {
     await client.createTimeSeries(request);
-    console.log(`Metric sent to Cloud Monitoring: ${value}`);
+    console.log(`✅ Metric sent to Cloud Monitoring: ${value}`);
   } catch (err) {
-    console.error('Error sending metric:', err);
+    console.error('❌ Error sending metric:', err.message);
   }
 }
 
