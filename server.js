@@ -6,6 +6,7 @@ const monitoring = require('@google-cloud/monitoring');
 const client = new monitoring.MetricServiceClient();
 const projectId = process.env.GOOGLE_CLOUD_PROJECT; // Cloud Run lo inyecta automáticamente
 
+// Función para enviar métricas personalizadas a Cloud Monitoring
 async function sendCustomMetric(value) {
   if (!projectId) {
     console.error('Project ID is missing! Cannot send metric.');
@@ -20,7 +21,12 @@ async function sendCustomMetric(value) {
         resource: { type: 'global' },
         points: [
           {
-            interval: { endTime: { seconds: Math.floor(Date.now() / 1000) } },
+            interval: {
+              endTime: {
+                // Convertimos a segundos (Cloud Monitoring requiere segundos, no milisegundos)
+                seconds: Math.floor(Date.now() / 1000),
+              },
+            },
             value: { doubleValue: value },
           },
         ],
@@ -36,6 +42,7 @@ async function sendCustomMetric(value) {
   }
 }
 
+// Generador de UUID
 function uuidv4() {
   return crypto.randomUUID();
 }
@@ -46,7 +53,7 @@ const app = express();
 const register = new promClient.Registry();
 promClient.collectDefaultMetrics({ register });
 
-// Métricas personalizadas
+// Métricas personalizadas Prometheus
 const counter = new promClient.Counter({
   name: 'valeria_requests_total',
   help: 'Total de peticiones recibidas por Valeria',
