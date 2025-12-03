@@ -1,6 +1,45 @@
 const express = require('express');
 const promClient = require('prom-client');
 const crypto = require('crypto');
+const monitoring = require('@google-cloud/monitoring');
+const client = new monitoring.MetricServiceClient();
+const projectId = process.env.GOOGLE_CLOUD_PROJECT; // Cloud Run lo inyecta automáticamente
+
+async function sendCustomMetric(value) {
+  const request = {
+    name: client.projectPath(projectId),
+    timeSeries: [
+      {
+        metric: {
+          type: 'custom.googleapis.com/valeria_requests', // Nombre de la métrica en Cloud Monitoring
+        },
+        resource: {
+          type: 'global',
+        },
+        points: [
+          {
+            interval: {
+              endTime: {
+                seconds: Math.floor(Date.now() / 1000),
+              },
+            },
+            value: {
+              doubleValue: value,
+            },
+          },
+        ],
+      },
+    ],
+  };
+
+  try {
+    await client.createTimeSeries(request);
+    console.log(`Metric sent to Cloud Monitoring: ${value}`);
+  } catch (err) {
+    console.error('Error sending metric:', err);
+  }
+}
+
 
 function uuidv4() {
   return crypto.randomUUID();
