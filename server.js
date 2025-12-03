@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const monitoring = require('@google-cloud/monitoring');
 
 const client = new monitoring.MetricServiceClient();
-const projectId = process.env.GOOGLE_CLOUD_PROJECT; // Cloud Run lo inyecta automáticamente
+const projectId = process.env.GOOGLE_CLOUD_PROJECT || 'manprom'; // Cloud Run lo inyecta automáticamente
 
 async function sendCustomMetric(value) {
   const request = {
