@@ -58,6 +58,15 @@ const counter = new promClient.Counter({
 });
 register.registerMetric(counter);
 
+res.on('finish', async () => {
+  counter.inc();
+  end({ status: res.statusCode });
+  payloadSize.observe({ method: req.method }, Number(req.headers['content-length'] || 0));
+
+  // Enviar métrica personalizada a Cloud Monitoring
+  await sendCustomMetric(1);
+});
+
 // 2️⃣ Gauge: memoria usada por el proceso
 const memoryGauge = new promClient.Gauge({
   name: 'valeria_memory_bytes',
@@ -110,3 +119,4 @@ const port = process.env.PORT || 8080;
 app.listen(port, () => {
   console.log(`Valeria app running on port ${port}, metrics at /metrics`);
 });
+
