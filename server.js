@@ -6,6 +6,22 @@ const monitoring = require('@google-cloud/monitoring');
 const client = new monitoring.MetricServiceClient();
 const projectId = process.env.GOOGLE_CLOUD_PROJECT; // Cloud Run lo inyecta automáticamente
 
+// Buffer para acumular métricas
+let pendingCount = 0;
+
+// Función para acumular métricas
+function queueMetric() {
+  pendingCount++;
+}
+
+// Enviar métricas acumuladas cada 10 segundos
+setInterval(async () => {
+  if (pendingCount > 0) {
+    await sendCustomMetric(pendingCount);
+    pendingCount = 0;
+  }
+}, 10000); // 10 segundos
+
 // Función para enviar métricas personalizadas a Cloud Monitoring
 async function sendCustomMetric(value) {
   if (!projectId) {
@@ -24,7 +40,7 @@ async function sendCustomMetric(value) {
         points: [
           {
             interval: {
-              startTime: { seconds: nowSeconds }, // Igual al endTime
+              startTime: { seconds: nowSeconds },
               endTime: { seconds: nowSeconds },
             },
             value: { doubleValue: value },
@@ -84,13 +100,13 @@ register.registerMetric(payloadSize);
 // Middleware para medir latencia y payload
 app.use((req, res, next) => {
   const end = requestDuration.startTimer({ method: req.method });
-  res.on('finish', async () => {
+  res.on('finish', () => {
     counter.inc();
     end({ status: res.statusCode });
     payloadSize.observe({ method: req.method }, Number(req.headers['content-length'] || 0));
 
-    // Enviar métrica personalizada a Cloud Monitoring
-    await sendCustomMetric(1);
+    // Acumular métrica para Cloud Monitoring
+    queueMetric();
   });
   next();
 });
