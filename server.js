@@ -6,10 +6,9 @@ const monitoring = require('@google-cloud/monitoring');
 const client = new monitoring.MetricServiceClient();
 const projectId = process.env.GOOGLE_CLOUD_PROJECT; // Cloud Run lo inyecta automáticamente
 
-// Buffer para acumular métricas
 let pendingCount = 0;
 
-// Función para acumular métricas
+// Acumular métricas
 function queueMetric() {
   pendingCount++;
 }
@@ -20,7 +19,7 @@ setInterval(async () => {
     await sendCustomMetric(pendingCount);
     pendingCount = 0;
   }
-}, 10000); // 10 segundos
+}, 10000);
 
 // Función para enviar métricas personalizadas a Cloud Monitoring
 async function sendCustomMetric(value) {
@@ -36,11 +35,13 @@ async function sendCustomMetric(value) {
     timeSeries: [
       {
         metric: { type: 'custom.googleapis.com/valeria_requests' },
-        resource: { type: 'global' },
+        resource: {
+          type: 'global',
+          labels: { project_id: projectId }
+        },
         points: [
           {
             interval: {
-              startTime: { seconds: nowSeconds },
               endTime: { seconds: nowSeconds },
             },
             value: { doubleValue: value },
@@ -54,11 +55,10 @@ async function sendCustomMetric(value) {
     await client.createTimeSeries(request);
     console.log(`✅ Metric sent to Cloud Monitoring: ${value}`);
   } catch (err) {
-    console.error('❌ Error sending metric:', err.message);
+    console.error('❌ Error sending metric:', err);
   }
 }
 
-// Generador de UUID
 function uuidv4() {
   return crypto.randomUUID();
 }
@@ -123,7 +123,6 @@ app.get('/metrics', async (req, res) => {
   res.end(await register.metrics());
 });
 
-// Puerto dinámico para Cloud Run
 const port = process.env.PORT || 8080;
 app.listen(port, () => {
   console.log(`Valeria app running on port ${port}, metrics at /metrics`);
